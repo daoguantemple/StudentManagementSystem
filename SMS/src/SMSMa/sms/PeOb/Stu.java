@@ -1,5 +1,8 @@
 package SMSMa.sms.PeOb;
 
+import SMSMa.sms.SMUI.RTEAge;
+import SMSMa.sms.SMUI.RTEGender;
+
 import java.io.Serializable;
 
 public class Stu implements Serializable {
@@ -32,15 +35,22 @@ public class Stu implements Serializable {
         return sex;
     }
 
-    public void setSex(String sex) {
-        this.sex = sex;
+    public void setSex(String sex) throws RTEGender {
+        if(sex.equals("男")||sex.equals("女"))
+        {
+            this.sex = sex;
+        }
+        else throw new RTEGender("性别输入错误！");
+
     }
 
     public int getAge() {
         return age;
     }
 
-    public void setAge(int age) {
+    public void setAge(int age) throws RTEAge {
+        if(age<0||age>100)
+            throw new RTEAge("年龄输入错误！");
         this.age = age;
     }
 

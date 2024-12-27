@@ -6,6 +6,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.*;
 import java.util.ArrayList;
 
 public class SysUI extends JFrame implements ActionListener {
@@ -15,8 +16,9 @@ public class SysUI extends JFrame implements ActionListener {
     private JButton registerButton;
     //静态集合储存用户对象信息
     private static ArrayList<User> allUser = new ArrayList<>();
-    static{
-        allUser.add(new User("山田凉","123456"));
+    {
+        //allUser.add(new User("山田凉", "123456"));//管理员帐号、密码
+        loadUser();
     }
 
     public SysUI(){
@@ -24,7 +26,6 @@ public class SysUI extends JFrame implements ActionListener {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setSize(400, 400);
         this.setLocationRelativeTo(null);
-
         createAndShowGUI();
     }
 
@@ -38,7 +39,7 @@ public class SysUI extends JFrame implements ActionListener {
         Color secondaryColor = new Color(204, 204, 204);
 
         JLabel titleLabel = new JLabel("学生管理系统");
-        titleLabel.setBounds(50, 30, 300, 30);
+        titleLabel.setBounds(50, 30, 600, 70);
         titleLabel.setFont(customFont);
         panel.add(titleLabel);
 
@@ -91,18 +92,20 @@ public class SysUI extends JFrame implements ActionListener {
             login();
         }
         else {
-            register();
+            try {
+                register();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
         }
     }
 
     private void login(){
         String loinName = loginNameField.getText();
         String password = new String(passwordField.getPassword());
-        //根据登录名称查找用户对象返回，查询到用户对象，说明登录名称正确。
         User user = findUser(loinName);
         if (user != null) {
             if (user.getPassword().equals(password)) {
-                //登录成功，跳转界面
                 new INUI(user.getUsername());
                 this.dispose();
             } else {
@@ -113,7 +116,6 @@ public class SysUI extends JFrame implements ActionListener {
         }
 
     }
-    //根据登录名称查找用户对象返回，查询到用户对象，说明登录名称正确,使用for循环根据索引遍历。
     private User findUser(String loginName){
         for (int i = 0; i < allUser.size(); i++) {
             User user = allUser.get(i);
@@ -124,16 +126,45 @@ public class SysUI extends JFrame implements ActionListener {
         return null;
     }
 
-    private void register(){
+    private void register() throws IOException {
         String loinName = loginNameField.getText();
         String password = new String(passwordField.getPassword());
-        //根据登录名称查找用户对象返回，查询到用户对象，说明登录名称正确。
         User user = findUser(loinName);
         if (user != null) {
             JOptionPane.showMessageDialog(this, "用户名已存在，请重新输入！");
-        }else {
+        } else if (loinName.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "用户名不能为空，请重新输入！");
+        } else if (loinName.contains(" ")) {
+            JOptionPane.showMessageDialog(this, "用户名不能包含空格，请重新输入！");
+        } else if (password.length() < 6) {
+            JOptionPane.showMessageDialog(this, "密码至少为6位，请重新输入！");
+        } else {
             allUser.add(new User(loinName,password));
-            JOptionPane.showMessageDialog(this, "注册成功！");
+            JOptionPane.showMessageDialog(this, "注册成功！请重新登录...");
+
+            save(allUser);
         }
+    }
+
+    public void save(ArrayList<User> allUser) {//保存学生信息
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("AllUsers.dat"))) {
+            oos.writeObject(allUser);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "保存失败");
+            e.printStackTrace();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static ArrayList<User> loadUser() {
+        ArrayList<User> loadUser = null;
+        try (ObjectInputStream oqs = new ObjectInputStream(new FileInputStream("AllUsers.dat"))) {
+            loadUser = (ArrayList<User>) oqs.readObject();
+            allUser = loadUser;
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "加载失败");
+            e.printStackTrace();
+        }
+        return loadUser;
     }
 }

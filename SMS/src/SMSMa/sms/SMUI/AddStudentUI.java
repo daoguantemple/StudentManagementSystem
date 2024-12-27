@@ -4,6 +4,7 @@ import SMSMa.sms.PeOb.Stu;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.IOException;
 
 public class AddStudentUI extends JFrame {
 
@@ -13,7 +14,6 @@ public class AddStudentUI extends JFrame {
     private INUI inui;
 
     public AddStudentUI(INUI inui){
-        //"姓名", "性别", "年龄", "班级", "学号"
         super("添加");
         this.inui = inui;
         setLayout(new GridBagLayout());
@@ -94,12 +94,29 @@ public class AddStudentUI extends JFrame {
             //获取数据，封装成员对象，添加信息展示
             Stu stu = new Stu();
             stu.setName(txtName.getText());
-            stu.setSex(txtSex.getText());
-            stu.setAge(Integer.parseInt(txtAge.getText()));
+            try {
+                stu.setSex(txtSex.getText());
+            } catch (RTEGender ex) {
+                JOptionPane.showMessageDialog(this, "性别输入错误！");
+                throw new RuntimeException(ex);
+            }
+            try {
+                stu.setAge(Integer.parseInt(txtAge.getText()));
+            } catch (RTEAge ex) {
+                JOptionPane.showMessageDialog(this, "年龄输入错误！");
+                throw new RuntimeException(ex);
+            }
             stu.setCls(txtClass.getText());
             stu.setId(txtNo.getText());
-            inui.addStu(stu);
-            JOptionPane.showMessageDialog(this, "添加成功！");
+            try {
+                inui.addStu(stu);
+                JOptionPane.showMessageDialog(this, "添加成功！");
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(this, "添加失败！");
+                throw new RuntimeException(ex);
+            }
+
             this.dispose();
         });
 
